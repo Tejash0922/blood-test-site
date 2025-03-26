@@ -1,3 +1,4 @@
+// server/index.ts
 import express2 from "express";
 
 // server/routes.ts
@@ -271,10 +272,11 @@ app.use((req, res, next) => {
   if (process.env.NODE_ENV !== "production") {
     await setupVite(app, server);
   } else {
-    app.use(serveStatic());
+    serveStatic(app);
   }
   const port = process.env.PORT || 3e3;
   server.listen(port, "0.0.0.0", () => {
     log(`Server running at http://0.0.0.0:${port}`);
   });
 })();
+
