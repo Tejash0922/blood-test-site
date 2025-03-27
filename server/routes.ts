@@ -1,7 +1,7 @@
 import type { Express, Request, Response } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertBookingSchema } from "@shared/schema";
+import { insertBookingSchema, insertUserSchema } from "@shared/schema";
 import { ZodError } from "zod";
 import { fromZodError } from "zod-validation-error";
 
@@ -46,6 +46,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(200).json({ booking });
     } catch (error) {
       res.status(500).json({ success: false, error: "An error occurred while fetching the booking" });
+    }
+  });
+
+  app.post("/api/users", async (req: Request, res: Response) => {
+    try {
+      const validatedUser = insertUserSchema.parse(req.body);
+      const existingUser = await storage.getUserByUsername(validatedUser.username);
+      
+      if (existingUser) {
+        return res.status(400).json({ success: false, error: "Username already exists" });
+      }
+
+      const user = await storage.createUser(validatedUser);
+      res.status(201).json({ success: true, user });
+    } catch (error) {
+      if (error instanceof ZodError) {
+        const validationError = fromZodError(error);
+        res.status(400).json({ success: false, error: validationError.message });
+      } else {
+        res.status(500).json({ success: false, error: "An error occurred while creating the user" });
+      }
     }
   });
 

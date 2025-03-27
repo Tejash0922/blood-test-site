@@ -119,6 +119,24 @@ async function registerRoutes(app2) {
       res.status(500).json({ success: false, error: "An error occurred while fetching the booking" });
     }
   });
+  app2.post("/api/users", async (req, res) => {
+    try {
+      const validatedUser = insertUserSchema.parse(req.body);
+      const existingUser = await storage.getUserByUsername(validatedUser.username);
+      if (existingUser) {
+        return res.status(400).json({ success: false, error: "Username already exists" });
+      }
+      const user = await storage.createUser(validatedUser);
+      res.status(201).json({ success: true, user });
+    } catch (error) {
+      if (error instanceof ZodError) {
+        const validationError = fromZodError(error);
+        res.status(400).json({ success: false, error: validationError.message });
+      } else {
+        res.status(500).json({ success: false, error: "An error occurred while creating the user" });
+      }
+    }
+  });
   const httpServer = createServer(app2);
   return httpServer;
 }
@@ -136,9 +154,15 @@ function log(message, source = "express") {
   console.log(`[${time}] [${source}] ${message}`);
 }
 function serveStatic() {
-  const distPath = path.join(__dirname2, "../../dist/public");
-  if (!fs.existsSync(distPath)) {
-    log(`Static files not found at: ${distPath}`, "static");
+  const possiblePaths = [
+    path.join(process.cwd(), "dist/public"),
+    path.join(process.cwd(), "public"),
+    path.join(__dirname2, "../public"),
+    path.join(__dirname2, "../dist/public")
+  ];
+  const distPath = possiblePaths.find((p) => fs.existsSync(p));
+  if (!distPath) {
+    log(`Static files not found in any of the possible locations`, "static");
     throw new Error("Static files not found - run build first");
   }
   log(`Serving static files from: ${distPath}`, "static");

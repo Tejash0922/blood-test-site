@@ -13,10 +13,18 @@ export function log(message: string, source = "express") {
 }
 
 export function serveStatic() {
-  const distPath = path.join(__dirname, "../../dist/public");
+  // Try multiple possible paths for static files
+  const possiblePaths = [
+    path.join(process.cwd(), "dist/public"),
+    path.join(process.cwd(), "public"),
+    path.join(__dirname, "../public"),
+    path.join(__dirname, "../dist/public")
+  ];
+
+  const distPath = possiblePaths.find(p => fs.existsSync(p));
   
-  if (!fs.existsSync(distPath)) {
-    log(`Static files not found at: ${distPath}`, "static");
+  if (!distPath) {
+    log(`Static files not found in any of the possible locations`, "static");
     throw new Error("Static files not found - run build first");
   }
 
