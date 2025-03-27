@@ -16,9 +16,9 @@ export function serveStatic() {
   // Try multiple possible paths for static files
   const possiblePaths = [
     path.join(process.cwd(), "dist/public"),
+    path.join(__dirname, "../dist/public"),
     path.join(process.cwd(), "public"),
-    path.join(__dirname, "../public"),
-    path.join(__dirname, "../dist/public")
+    path.join(__dirname, "../public")
   ];
 
   const distPath = possiblePaths.find(p => fs.existsSync(p));
@@ -41,3 +41,4 @@ export async function setupVite(app: express.Express, server: any) {
   app.use(vite.middlewares);
   log("Vite development server configured", "vite");
 }
+
