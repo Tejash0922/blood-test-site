@@ -61,7 +61,7 @@ app.use((req, res, next) => {
     
     // Then add a catch-all route for client-side routing
     app.get("*", (_req, res) => {
-      const distPath = path.join(__dirname, "../public");
+      const distPath = path.join(__dirname, "../dist/public");
       res.sendFile(path.join(distPath, "index.html"));
     });
   }
